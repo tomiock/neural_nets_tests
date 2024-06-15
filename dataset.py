@@ -56,13 +56,12 @@ def plot_greyscale_image(img):
     plt.show()
 
 
-# Example usage
-digit = 1
-img = create_greyscale_digit_normal(digit, (16, 16))
-plot_greyscale_image(img)
-print()
+if __name__ == '__main__':
+    digit = 1
+    img = create_greyscale_digit_normal(digit, (16, 16))
+    print_greyscale_image(img)
+    print()
 
-digit = 0
-img = create_greyscale_digit_normal(digit, (16, 16))
-plot_greyscale_image(img)
-
+    digit = 0
+    img = create_greyscale_digit_normal(digit, (16, 16))
+    print_greyscale_image(img)

@@ -74,18 +74,18 @@ class FCNN_BinaryDigits:
         nabla_b = [np.zeros(b.shape) for b in self.biases]
         nabla_w = [np.zeros(w.shape) for w in self.weights]
 
-        for real_image, fake_image in mini_batch:
-            delta_nabla_b, delta_nabla_w, _ = self.backprop_bce(
-                real_image, np.array([1.]))
-            nabla_b = [nb + dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
-            nabla_w = [nw + dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
-
-            delta_nabla_b, delta_nabla_w, _ = self.backprop_bce(
-                fake_image, np.array([0.]))
-            nabla_b = [nb + dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
-            nabla_w = [nw + dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
+        delta_nabla_b, delta_nabla_w, _ = zip(
+            *[self.backprop_bce(image, label) for image, label in mini_batch])
+        nabla_b = [nb + dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
+        nabla_w = [nw + dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
 
         self.weights = [w - (learning_rate / len(mini_batch)) * nw
                         for w, nw in zip(self.weights, nabla_w)]
         self.biases = [b - (learning_rate / len(mini_batch)) * nb
                        for b, nb in zip(self.biases, nabla_b)]
+
+
+if __name__ == '__main__':
+    sizes = [256, 30, 1]
+    fcnn = FCNN_BinaryDigits(sizes)
+    fcnn.init_parameters()
