@@ -9,7 +9,8 @@ def create_greyscale_digit_normal(digit, img_size, noise_level=0.1):
 
     if digit == 0:
         x, y = np.indices(img_size)
-        center = (img_size[0]//2, img_size[1]//2) + np.array([offset_x, offset_y])
+        center = (img_size[0]//2, img_size[1]//2) + \
+            np.array([offset_x, offset_y])
         radius = min(img_size) // 4
         mask = (x - center[0])**2 + (y - center[1])**2 <= radius**2
         img[mask] = 1.0
@@ -26,7 +27,8 @@ def create_greyscale_digit_normal(digit, img_size, noise_level=0.1):
 
     # Deform the borders
     for _ in range(int(noise_level * 10000)):
-        x, y = np.random.randint(0, img.shape[0]), np.random.randint(0, img.shape[1])
+        x, y = np.random.randint(
+            0, img.shape[0]), np.random.randint(0, img.shape[1])
         if img[x, y] == 1.0:
             deform_x = x + np.random.choice([-1, 1])
             deform_y = y + np.random.choice([-1, 1])
@@ -45,23 +47,51 @@ def generate_dataset_normal(num_samples, img_size, noise_level=0.1):
     return dataset
 
 
+"""
 def print_greyscale_image(img):
     for row in img:
         print(" ".join([f"{pixel:.2f}" for pixel in row]))
+"""
 
 
 def plot_greyscale_image(img):
+    img = np.array(img)
+    if img.ndim == 1:
+        img = img.reshape((int(np.sqrt(img.size)), -1))
+
     plt.imshow(img, cmap='gray', vmin=0, vmax=1)
     plt.axis('off')
     plt.show()
 
 
-if __name__ == '__main__':
-    digit = 1
-    img = create_greyscale_digit_normal(digit, (16, 16))
-    print_greyscale_image(img)
-    print()
+def save_dataset(dataset, filename):
+    with open(filename, 'w') as f:
+        for img, label in dataset:
+            f.write(f"{label} {' '.join(map(str, img))}\n")
 
-    digit = 0
-    img = create_greyscale_digit_normal(digit, (16, 16))
-    print_greyscale_image(img)
+
+def load_dataset(filename):
+    dataset = []
+    with open(filename, 'r') as f:
+        for line in f:
+            label, *img = map(float, line.strip().split())
+            img = np.array(img)
+            dataset.append((img, int(label)))
+    return dataset
+
+
+if __name__ == '__main__':
+    img_size = (28, 28)
+    num_samples = 1000
+    noise_level = 0.1
+
+    dataset = generate_dataset_normal(num_samples, img_size, noise_level)
+    plot_greyscale_image(dataset[0][0])
+    print(dataset[0][1])
+
+    save_dataset(dataset, 'dataset.txt')
+    print("Dataset saved.")
+    print("Sample image:")
+
+    dataset = load_dataset('dataset.txt')
+    plot_greyscale_image(dataset[0][0])

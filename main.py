@@ -1,14 +1,22 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from dataset import create_greyscale_digit_normal, generate_dataset_normal, plot_greyscale_image
+from dataset import create_greyscale_digit_normal, generate_dataset_normal, plot_greyscale_image, load_dataset
 from fcnn import FCNN_BinaryDigits, BCE
 
 
 def prepare_data(num_samples, img_size, noise_level):
     dataset = generate_dataset_normal(num_samples, img_size, noise_level)
     np.random.shuffle(dataset)
-    X = np.array([img for img, label in dataset])
-    y = np.array([label for img, label in dataset])
+    X = np.array([img for img, _ in dataset])
+    y = np.array([label for _, label in dataset])
+    return X, y
+
+
+def load_data(filename: str):
+    dataset = load_dataset(filename)
+    np.random.shuffle(dataset)
+    X = np.array([img for img, _ in dataset])
+    y = np.array([label for _, label in dataset])
     return X, y
 
 
@@ -31,10 +39,10 @@ def predict(network, X):
 
 
 def main():
-    img_size = (16, 16)
+    img_size = (28, 28)
     noise_level = 0.1
     num_samples = 1000
-    X, y = prepare_data(num_samples, img_size, noise_level)
+    X, y = load_data("dataset.txt")
 
     train_size = int(num_samples * 0.8)
     X_train, X_test = X[:train_size], X[train_size:]
@@ -45,8 +53,8 @@ def main():
 
     accuracy = []
     loss = []
-    epochs = 200
-    mini_batch_size = 100
+    epochs = 10
+    mini_batch_size = 10
     learning_rate = .1
 
     n = len(X_train)

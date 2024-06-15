@@ -74,10 +74,11 @@ class FCNN_BinaryDigits:
         nabla_b = [np.zeros(b.shape) for b in self.biases]
         nabla_w = [np.zeros(w.shape) for w in self.weights]
 
-        delta_nabla_b, delta_nabla_w, _ = zip(
-            *[self.backprop_bce(image, label) for image, label in mini_batch])
-        nabla_b = [nb + dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
-        nabla_w = [nw + dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
+        for image, label in zip(mini_batch[0], mini_batch[1]):
+            delta_nabla_b, delta_nabla_w, _ = self.backprop_bce(image, label)
+
+            nabla_b = [nb + dnb for nb, dnb in zip(nabla_b, delta_nabla_b)]
+            nabla_w = [nw + dnw for nw, dnw in zip(nabla_w, delta_nabla_w)]
 
         self.weights = [w - (learning_rate / len(mini_batch)) * nw
                         for w, nw in zip(self.weights, nabla_w)]
