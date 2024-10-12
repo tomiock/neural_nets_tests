@@ -1,0 +1,4 @@
+numpy
+matplotlib
+autograd
+scikit-learn
