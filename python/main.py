@@ -1,7 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from dataset import create_greyscale_digit_normal, generate_dataset_normal, plot_greyscale_image, load_dataset
-from fcnn import FCNN_BinaryDigits, BCE
+from fcnn_naive import FCNN_BinaryDigits_naive
+from utils import BCE
 
 
 def prepare_data(num_samples, img_size, noise_level):
@@ -48,7 +49,7 @@ def main():
     X_train, X_test = X[:train_size], X[train_size:]
     y_train, y_test = y[:train_size], y[train_size:]
 
-    network = FCNN_BinaryDigits([img_size[0] * img_size[1], 30, 20, 10, 1])
+    network = FCNN_BinaryDigits_naive([img_size[0] * img_size[1], 30, 20, 10, 1])
     network.init_parameters()
 
     accuracy = []

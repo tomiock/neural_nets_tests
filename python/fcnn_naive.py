@@ -1,25 +1,10 @@
 import numpy as np
 from typing import List
-
-
-def sigmoid(z):
-    return 1.0 / (1.0 + np.exp(-z))
-
-
-def sigmoid_prime(z):
-    return sigmoid(z) * (1 - sigmoid(z))
-
-
-def BCE(output_activations, y):
-    return -np.sum(y * np.log(output_activations) + (1 - y) * np.log(1 - output_activations))
-
-
-def BCE_prime(output_activations, y):
-    return (output_activations - y) / (output_activations * (1 - output_activations))
+from utils import BCE_prime, sigmoid, sigmoid_prime
 
 
 # TODO: Do not make a class?
-class FCNN_BinaryDigits:
+class FCNN_BinaryDigits_naive:
     def __init__(self, sizes: List[int]) -> None:
         self.num_layers = len(sizes)
         self.sizes = sizes
@@ -89,5 +74,5 @@ class FCNN_BinaryDigits:
 
 if __name__ == '__main__':
     sizes = [256, 30, 1]
-    fcnn = FCNN_BinaryDigits(sizes)
+    fcnn = FCNN_BinaryDigits_naive(sizes)
     fcnn.init_parameters()
