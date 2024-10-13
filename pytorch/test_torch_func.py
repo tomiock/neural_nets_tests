@@ -8,7 +8,26 @@ import torchopt
 
 
 from collections.abc import Callable
+from enum import Enum
 from torch import Tensor
+
+class Optimizer(Enum):
+    ADAM = (torchopt.adam, )
+    SGD = (torchopt.sgd, )
+    ADAGRAD = (torchopt.adagrad, )
+    ADAMAX = (torchopt.adamax, )
+    ADADELTA = (torchopt.adadelta, )
+    ADAMW = (torchopt.adamw, )
+    RADAM = (torchopt.radam, )
+    RMSPROP = (torchopt.rmsprop, )
+
+    def __new__(cls, optmizer_class):
+        obj = object.__new__(cls)
+        obj._value_ = optmizer_class
+        return obj
+
+    def get_optimizer(self, lr, **kwargs):
+        return torchopt.FuncOptimizer(self.value(lr=lr, **kwargs))
 
 
 class SimpleNN(nn.Module):
@@ -62,10 +81,14 @@ def make_functional_fwd(
     return fn
 
 
-def get_data(n_points: int = 20) -> tuple[Tensor, Tensor]:
-    x = torch.rand(n_points) * 2.0 * torch.pi
-    y = 2.0 * torch.sin(x + 2.0 * torch.pi)
-    return x, y
+def get_data(n_points=20, noise_std=0.1) -> tuple[Tensor, Tensor]:
+    x = torch.rand(n_points, 1) * 2.0 * torch.pi  # Shape: [n_points, 1]
+    y = 2.0 * torch.sin(x + 2.0 * torch.pi)  # Original y-values
+
+    noise = torch.randn(n_points, 1) * noise_std
+    y_noisy = y + noise
+
+    return x, y_noisy
 
 
 if __name__ == "__main__":
@@ -78,29 +101,40 @@ if __name__ == "__main__":
     x_test, y_test = get_data(n_points=10)
 
     # choose optimizer with functional API using functorch
-    num_epochs = 500
-    lr = 0.01
-    optimizer = torchopt.FuncOptimizer(torchopt.adam(lr=lr))
-    loss_fn = torch.nn.MSELoss()
+    num_epochs = 1000
+    lr = .01
 
-    # train the model
-    loss_evolution = []
-    params = tuple(model.parameters())
+    loss_curves = {}
 
-    for i in range(num_epochs):
-        # update the parameters
-        y = model_func(x_train, params)
-        loss = loss_fn(y, y_train)
-        params = optimizer.step(loss, params)
+    for opt in Optimizer:
+        optimizer = opt.get_optimizer(lr=lr)
+        loss_fn = torch.nn.MSELoss()
 
-        if i % 100 == 0:
-            print(f"Iteration {i} with loss {float(loss)}")
-        loss_evolution.append(float(loss))
+        # train the model
+        loss_evolution = []
+        params = tuple(model.parameters())
 
-    plt.plot(np.arange(len(loss_evolution)), loss_evolution)
-    plt.title("Loss function")
+        for i in range(num_epochs):
+            # update the parameters
+            y = model_func(x_train, params)
+            loss = loss_fn(y, y_train)
+            params = optimizer.step(loss, params)
+
+            loss_evolution.append(float(loss))
+
+        loss_curves[opt.name] = loss_evolution
+
+        # performance on the model on the test set
+        y_pred = model_func(x_test, params)
+        print(f"Loss on the test set: {loss_fn(y_pred, y_test)} with opt {opt.name}")
+
+    plt.figure(figsize=(10, 6))
+    for opt_name, losses in loss_curves.items():
+        plt.plot(np.arange(len(losses)), losses, label=f'{opt_name}')
+
+    plt.title("Loss function evolution for different optimizers")
+    plt.xlabel("Epochs")
+    #plt.xscale('log')
+    plt.ylabel("Loss")
+    plt.legend()
     plt.show()
-
-    # performance on the model on the test set
-    y_pred = model_func(x_test, params)
-    print(f"Loss on the test set: {loss_fn(y_pred, y_test)}")
