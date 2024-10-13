@@ -10,9 +10,9 @@ let
 in with pkgs; mkShell {
   packages = [
 
-
     pythonPackages.venvShellHook
     pythonPackages.numpy
+    pythonPackages.tqdm
     pythonPackages.pytorch
     pythonPackages.matplotlib
 

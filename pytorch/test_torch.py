@@ -3,6 +3,8 @@ import torch.nn as nn
 import torch.optim as optim
 import numpy as np
 import matplotlib.pyplot as plt
+from tqdm import tqdm
+from torch import Tensor
 
 # Define the model class
 
@@ -34,57 +36,52 @@ class SimpleNN(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.network(x).squeeze()
 
-# Define the data generation function
 
-
-def get_data(n_points=20):
+def get_data(n_points=20, noise_std=0.1) -> tuple[Tensor, Tensor]:
     x = torch.rand(n_points, 1) * 2.0 * torch.pi  # Shape: [n_points, 1]
-    y = 2.0 * torch.sin(x + 2.0 * torch.pi)
-    return x, y
+    y = 2.0 * torch.sin(x + 2.0 * torch.pi)  # Original y-values
+
+    noise = torch.randn(n_points, 1) * noise_std
+    y_noisy = y + noise
+
+    return x, y_noisy
 
 
-# Generate training and test data
-x_train, y_train = get_data(n_points=40)
-x_test, y_test = get_data(n_points=10)
+if __name__ == "__main__":
+    x_train, y_train = get_data(n_points=500)
+    x_test, y_test = get_data(n_points=100)
 
-# Initialize model, loss function, and optimizer
-model = SimpleNN(num_layers=2)
-loss_fn = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.01)
+    plt.scatter(x_train, y_train)
+    plt.title("Data")
+    plt.show()
 
-num_epochs = 500
-loss_evolution = []  # Track the loss evolution per epoch
+    model = SimpleNN(num_layers=2)
+    loss_fn = nn.MSELoss()
+    optimizer = optim.Adam(model.parameters(), lr=0.01)
 
-# Training loop
-for i in range(num_epochs):
-    model.train()  # Set model to training mode
+    num_epochs = 10000
+    loss_evolution = []
 
-    # Zero the gradients
-    optimizer.zero_grad()
+    for i in tqdm(range(num_epochs)):
+        model.train()
+        optimizer.zero_grad()
+        y_pred = model(x_train)
+        loss = loss_fn(y_pred, y_train.squeeze())
+        loss.backward()
+        optimizer.step()
 
-    # Forward pass
-    y_pred = model(x_train)
+        loss_evolution.append(float(loss.item()))
 
-    # Compute the loss
-    loss = loss_fn(y_pred, y_train.squeeze())
+        if i % 100 == 0:
+            print(f"Iteration {i} with loss {float(loss.item())}")
 
-    # Backward pass and optimization step
-    loss.backward()
-    optimizer.step()
+    plt.plot(np.arange(len(loss_evolution)), loss_evolution)
+    plt.title("Loss function")
+    plt.show()
 
-    loss_evolution.append(float(loss.item()))
+    model.eval()
+    with torch.no_grad():
+        y_test_pred = model(x_test)
+        test_loss = loss_fn(y_test_pred, y_test.squeeze())
 
-    if i % 100 == 0:
-        print(f"Iteration {i} with loss {float(loss.item())}")
-
-plt.plot(np.arange(len(loss_evolution)), loss_evolution)
-plt.title('Loss function')
-plt.show()
-
-# Evaluate on the test set
-model.eval()  # Set model to evaluation mode
-with torch.no_grad():
-    y_test_pred = model(x_test)
-    test_loss = loss_fn(y_test_pred, y_test.squeeze())
-
-print(f"Loss on the test set: {test_loss.item()}")
+    print(f"Loss on the test set: {test_loss.item()}")

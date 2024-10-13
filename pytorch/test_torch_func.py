@@ -1,10 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
+
 import torch
 from torch import nn
-from torch import Tensor
 from torch.func import functional_call
 import torchopt
+
+
+from collections.abc import Callable
+from torch import Tensor
 
 
 class SimpleNN(nn.Module):
@@ -39,7 +43,9 @@ class SimpleNN(nn.Module):
         return self.network(x.reshape(-1, 1)).squeeze()
 
 
-def make_functional_fwd(model: torch.nn.Module):
+def make_functional_fwd(
+    model: torch.nn.Module,
+) -> Callable[[Tensor, tuple[Tensor, ...]], Tensor]:
     """Make a functional forward pass for a generic module
     This function is compatible with the torchopt library which
     returns the updated parameters as a tuple while the `functional_call`
@@ -49,7 +55,7 @@ def make_functional_fwd(model: torch.nn.Module):
 
     keys = list(dict(model.named_parameters()).keys())
 
-    def fn(data: Tensor, parameters: tuple[Tensor, ...]):
+    def fn(data: Tensor, parameters: tuple[Tensor, ...]) -> Tensor:
         params_dict = {k: v for k, v in zip(keys, parameters)}
         return functional_call(model, params_dict, (data,))
 
@@ -57,7 +63,6 @@ def make_functional_fwd(model: torch.nn.Module):
 
 
 def get_data(n_points: int = 20) -> tuple[Tensor, Tensor]:
-    """Prepare the input data for training/test sets"""
     x = torch.rand(n_points) * 2.0 * torch.pi
     y = 2.0 * torch.sin(x + 2.0 * torch.pi)
     return x, y
@@ -93,7 +98,7 @@ if __name__ == "__main__":
         loss_evolution.append(float(loss))
 
     plt.plot(np.arange(len(loss_evolution)), loss_evolution)
-    plt.title('Loss function')
+    plt.title("Loss function")
     plt.show()
 
     # performance on the model on the test set
