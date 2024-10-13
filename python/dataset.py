@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 
 def create_greyscale_digit_normal(digit, img_size, noise_level=0.1):
@@ -40,7 +41,7 @@ def create_greyscale_digit_normal(digit, img_size, noise_level=0.1):
 
 def generate_dataset_normal(num_samples, img_size, noise_level=0.1):
     dataset = []
-    for _ in range(num_samples):
+    for _ in tqdm(range(num_samples)):
         label = np.random.choice([0, 1])
         img = create_greyscale_digit_normal(label, img_size, noise_level)
         dataset.append((img.flatten(), label))
@@ -81,9 +82,9 @@ def load_dataset(filename):
 
 
 if __name__ == '__main__':
-    img_size = (28, 28)
+    img_size = (512, 512)
     num_samples = 1000
-    noise_level = 0.1
+    noise_level = 0.5
 
     dataset = generate_dataset_normal(num_samples, img_size, noise_level)
     plot_greyscale_image(dataset[0][0])
