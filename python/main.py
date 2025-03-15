@@ -42,7 +42,8 @@ def predict(network, X):
 
 
 def main():
-    img_size = (512, 512)
+    img_size = (28, 28)
+    noise_level = 0.1
     num_samples = 1000
     X, y = load_data("python/dataset.txt")
 

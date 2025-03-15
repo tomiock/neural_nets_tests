@@ -3,3 +3,4 @@ matplotlib
 autograd
 scikit-learn
 tqdm
+jax

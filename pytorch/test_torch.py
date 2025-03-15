@@ -59,11 +59,11 @@ if __name__ == "__main__":
     loss_fn = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=0.01)
 
-    num_epochs = 10000
+    num_epochs = 1000
     loss_evolution = []
 
+    model.train()
     for i in tqdm(range(num_epochs)):
-        model.train()
         optimizer.zero_grad()
         y_pred = model(x_train)
         loss = loss_fn(y_pred, y_train.squeeze())
@@ -71,9 +71,6 @@ if __name__ == "__main__":
         optimizer.step()
 
         loss_evolution.append(float(loss.item()))
-
-        if i % 100 == 0:
-            print(f"Iteration {i} with loss {float(loss.item())}")
 
     plt.plot(np.arange(len(loss_evolution)), loss_evolution)
     plt.title("Loss function")
@@ -85,3 +82,19 @@ if __name__ == "__main__":
         test_loss = loss_fn(y_test_pred, y_test.squeeze())
 
     print(f"Loss on the test set: {test_loss.item()}")
+
+    # Plot the predictions
+    with torch.no_grad():
+        # Create a dense set of x values for smooth plotting
+        x_plot = torch.linspace(0, 2 * torch.pi, 500).unsqueeze(1)
+        y_plot = model(x_plot)
+
+        plt.figure(figsize=(8, 6))
+        plt.scatter(x_train, y_train, label="Train Data", alpha=0.5)
+        plt.scatter(x_test, y_test, label="Test Data", alpha=0.5)
+        plt.plot(x_plot.numpy(), y_plot.numpy(), label="Prediction", color="red")
+        plt.xlabel("x")
+        plt.ylabel("y")
+        plt.title("Model Prediction vs. Data")
+        plt.legend()
+        plt.show()

@@ -134,7 +134,7 @@ if __name__ == "__main__":
 
     plt.title("Loss function evolution for different optimizers")
     plt.xlabel("Epochs")
-    #plt.xscale('log')
+    plt.xscale('log')
     plt.ylabel("Loss")
     plt.legend()
     plt.show()
